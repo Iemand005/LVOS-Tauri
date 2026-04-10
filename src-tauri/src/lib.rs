@@ -1,3 +1,6 @@
+use tauri::Manager;
+use window_vibrancy::apply_mica;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -9,6 +12,15 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
+        .setup(|app| {
+            let window = app.get_webview_window("main").unwrap();
+            
+            // Only apply on Windows 11
+            #[cfg(target_os = "windows")]
+            apply_mica(&window, None).expect("Unsupported platform!");
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
